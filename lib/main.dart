@@ -1,281 +1,60 @@
-import 'package:flutter/material.dart';
-import 'package:mirai/mirai.dart';
+import 'dart:io';
 
-void main() async{
-  await Mirai.initialize();
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mirai/mirai.dart';
+import 'package:mirai_webview/parsers/mirai_webview/mirai_webview_parser.dart';
+
+import 'app/details/details_screen.dart';
+import 'app/example/example_screen_parser.dart';
+import 'app/home/home_screen.dart';
+import 'app_theme/app_theme_cubit.dart';
+
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
+void main() async {
+  HttpOverrides.global = MyHttpOverrides();
+  await Mirai.initialize(
+    parsers: const [
+      ExampleScreenParser(),
+      MiraiWebViewParser(),
+    ],
+  );
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MiraiApp(
-      title: 'Mirai Demo',
-      homeBuilder: (context) => Mirai.fromJson(json, context),
+    return BlocProvider(
+      create: (context) => AppThemeCubit()..loadThemes(),
+      child: BlocBuilder<AppThemeCubit, AppThemeState>(
+        builder: (context, state) {
+          return MiraiApp(
+            theme: state.lightTheme,
+            debugShowCheckedModeBanner: false,
+            darkTheme: state.darkTheme,
+            themeMode: state.themeMode,
+            homeBuilder: (context) => const HomeScreen(),
+            title: 'Mirai Gallery',
+            routes: {
+              '/homeScreen': (context) => const HomeScreen(),
+              '/detailsScreen': (context) => const DetailsScreen(),
+            },
+          );
+        },
+      ),
     );
   }
 }
-var json ={
-  "type": "scaffold",
-  "appBar": {
-    "type": "appBar",
-    "title": {
-      "type": "text",
-      "data": "Text Field",
-      "style": {
-        "color": "#ffffff",
-        "fontSize": 21
-      }
-    },
-    "backgroundColor": "#4D00E9"
-  },
-  "backgroundColor": "#ffffff",
-  "body": {
-    "type": "singleChildScrollView",
-    "child": {
-      "type": "container",
-      "padding": {
-        "left": 12,
-        "right": 12,
-        "top": 12,
-        "bottom": 12
-      },
-      "child": {
-        "type": "column",
-        "mainAxisAlignment": "center",
-        "crossAxisAlignment": "center",
-        "children": [
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "textField",
-            "maxLines": 1,
-            "keyboardType": "text",
-            "textInputAction": "done",
-            "textAlign": "start",
-            "textCapitalization": "none",
-            "textDirection": "ltr",
-            "textAlignVertical": "top",
-            "obscureText": false,
-            "cursorColor": "#FC3F1B",
-            "style": {
-              "color": "#000000"
-            },
-            "decoration": {
-              "hintText": "What do people call you?",
-              "filled": true,
-              "icon": {
-                "type": "icon",
-                "iconType": "cupertino",
-                "icon": "person_solid",
-                "size": 24
-              },
-              "hintStyle": {
-                "color": "#797979"
-              },
-              "labelText": "Name*",
-              "fillColor": "#F2F2F2"
-            },
-            "readOnly": false,
-            "enabled": true
-          },
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "textField",
-            "maxLines": 1,
-            "keyboardType": "text",
-            "textInputAction": "done",
-            "textAlign": "start",
-            "textCapitalization": "none",
-            "textDirection": "ltr",
-            "textAlignVertical": "top",
-            "obscureText": false,
-            "cursorColor": "#FC3F1B",
-            "style": {
-              "color": "#000000"
-            },
-            "decoration": {
-              "hintText": "Where can we reach you?",
-              "filled": true,
-              "icon": {
-                "type": "icon",
-                "iconType": "cupertino",
-                "icon": "phone_solid",
-                "size": 24
-              },
-              "hintStyle": {
-                "color": "#797979"
-              },
-              "labelText": "Phone number*",
-              "fillColor": "#F2F2F2"
-            },
-            "readOnly": false,
-            "enabled": true
-          },
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "textField",
-            "maxLines": 1,
-            "keyboardType": "text",
-            "textInputAction": "done",
-            "textAlign": "start",
-            "textCapitalization": "none",
-            "textDirection": "ltr",
-            "textAlignVertical": "top",
-            "obscureText": false,
-            "cursorColor": "#FC3F1B",
-            "style": {
-              "color": "#000000"
-            },
-            "decoration": {
-              "hintText": "Your email address",
-              "filled": true,
-              "icon": {
-                "type": "icon",
-                "iconType": "material",
-                "icon": "email",
-                "size": 24
-              },
-              "hintStyle": {
-                "color": "#797979"
-              },
-              "labelText": "Email",
-              "fillColor": "#F2F2F2"
-            },
-            "readOnly": false,
-            "enabled": true
-          },
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "sizedBox",
-            "height": 100,
-            "child": {
-              "type": "textField",
-              "expands": true,
-              "cursorColor": "#FC3F1B",
-              "style": {
-                "color": "#000000"
-              },
-              "decoration": {
-                "filled": true,
-                "hintStyle": {
-                  "color": "#797979"
-                },
-                "labelText": "Life story",
-                "fillColor": "#F2F2F2"
-              },
-              "readOnly": false,
-              "enabled": true
-            }
-          },
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "textField",
-            "maxLines": 1,
-            "keyboardType": "text",
-            "textInputAction": "done",
-            "textAlign": "start",
-            "textCapitalization": "none",
-            "textDirection": "ltr",
-            "textAlignVertical": "top",
-            "obscureText": true,
-            "cursorColor": "#FC3F1B",
-            "style": {
-              "color": "#000000"
-            },
-            "decoration": {
-              "filled": true,
-              "suffixIcon": {
-                "type": "icon",
-                "iconType": "cupertino",
-                "icon": "eye",
-                "size": 24
-              },
-              "hintStyle": {
-                "color": "#797979"
-              },
-              "labelText": "Password*",
-              "fillColor": "#F2F2F2"
-            },
-            "readOnly": false,
-            "enabled": true
-          },
-          {
-            "type": "sizedBox",
-            "height": 24
-          },
-          {
-            "type": "textField",
-            "maxLines": 1,
-            "keyboardType": "text",
-            "textInputAction": "done",
-            "textAlign": "start",
-            "textCapitalization": "none",
-            "textDirection": "ltr",
-            "textAlignVertical": "top",
-            "obscureText": true,
-            "cursorColor": "#FC3F1B",
-            "style": {
-              "color": "#000000"
-            },
-            "decoration": {
-              "filled": true,
-              "suffixIcon": {
-                "type": "icon",
-                "iconType": "cupertino",
-                "icon": "eye",
-                "size": 24
-              },
-              "hintStyle": {
-                "color": "#797979"
-              },
-              "labelText": "Re-type password*",
-              "fillColor": "#F2F2F2"
-            },
-            "readOnly": false,
-            "enabled": true
-          },
-          {
-            "type": "sizedBox",
-            "height": 48
-          },
-          {
-            "type": "elevatedButton",
-            "child": {
-              "type": "text",
-              "data": "Submit"
-            },
-            "style": {
-              "backgroundColor": "#4D00E9",
-              "padding": {
-                "top": 8,
-                "left": 12,
-                "right": 12,
-                "bottom": 8
-              }
-            },
-            "onPressed": {}
-          }
-        ]
-      }
-    }
-  }
-};
-
-
